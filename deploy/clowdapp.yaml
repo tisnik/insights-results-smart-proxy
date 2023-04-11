@@ -135,6 +135,12 @@ objects:
                   optional: true
             - name: INSIGHTS_RESULTS_SMART_PROXY__AMSCLIENT__PAGE_SIZE
               value: ${AMS_API_PAGESIZE}
+            - name: INSIGHTS_RESULTS_SMART_PROXY__AMSCLIENT__TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ams-client-auth
+                  key: amsclient_token
+                  optional: true
           image: ${IMAGE}:${IMAGE_TAG}
           livenessProbe:
             failureThreshold: 3
