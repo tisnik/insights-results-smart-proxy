@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<!--
+ Copyright 2023 Red Hat, Inc
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<html>
+<head>
+<title>redis.go</title>
+<meta charset="utf-8"/>
+<style type="text/css">body {
+    background: rgb(225, 225, 225);
+    margin: 0px;
+    padding: 0px;
+}
+
+#docgo p {
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    margin-left: 0px;
+}
+
+#docgo div {
+    display: inline;
+}
+
+#docgo #background {
+    position: fixed;
+    top: 0; left: 525px; right: 0; bottom: 0;
+    background: rgb(47, 47, 47);
+    border-left: 1px solid #e5e5ee;
+    z-index: -1;
+}
+
+#docgo .keyword {
+    color: rgb(250, 200, 100);
+}
+
+#docgo .literal {
+    color: rgb(140, 190, 100);
+}
+
+#docgo .ident {
+    color: white;
+}
+
+#docgo .operator {
+    color: white;
+}
+
+#docgo .comment {
+}
+
+#docgo h1, h2, h3, h4, h5 {
+    text-align: left;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    margin-left: 0px;
+}
+
+#docgo h1 {
+    margin-top: 40px;
+}
+
+#docgo .doc {
+    vertical-align: top;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+    font-size: 15px;
+    line-height: 22px;
+    color: black;
+    min-width: 450px;
+    max-width: 450px;
+    padding-top: 10px;
+    padding-right: 25px;
+    padding-bottom: 1px;
+    padding-left: 50px;
+    overflow-x: hidden;
+}
+
+#docgo .code {
+    min-width: 650px;
+    max-width: 650px;
+    padding-left: 25px;
+    padding-right: 15px;
+    border-left: 1px;
+    overflow-x: hidden;
+    vertical-align: top;
+}
+
+#docgo .code pre code  {
+    font-size: 12px;
+    line-height: 18px;
+    font-family: Menlo, Monaco, Consolas, "Lucida Console", monospace;
+    color: rgb(120, 120, 120);
+}
+</style>
+</head>
+<body>
+<div id="docgo">
+  <div id="background"></div>
+  <table>
+    <thead><tr><th class="doc"><h1>redis.go</h1></th><th class="code"></th></tr></thead>
+    <tbody>
+      
+      <tr class="section">
+	<td class="doc"><p>Copyright 2023 Red Hat, Inc</p>
+
+<p>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+
+<pre><code> http://www.apache.org/licenses/LICENSE-2.0
+</code></pre>
+
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+</td>
+	<td class="code"><pre><code></code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>Package services contains interface implementations to other
+services that are called from Smart Proxy.</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">package</div> <div class="ident">services</div><div class="operator"></div>
+
+<div class="keyword">import</div> <div class="operator">(</div>
+	<div class="literal">&#34;context&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;fmt&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;regexp&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;strings&#34;</div><div class="operator"></div>
+
+	<div class="literal">&#34;github.com/RedHatInsights/insights-operator-utils/redis&#34;</div><div class="operator"></div>
+	<div class="ident">utypes</div> <div class="literal">&#34;github.com/RedHatInsights/insights-operator-utils/types&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/RedHatInsights/insights-results-smart-proxy/types&#34;</div><div class="operator"></div>
+
+	<div class="ident">redisV9</div> <div class="literal">&#34;github.com/redis/go-redis/v9&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/rs/zerolog/log&#34;</div><div class="operator"></div>
+<div class="operator">)</div><div class="operator"></div>
+
+<div class="keyword">const</div> <div class="operator">(</div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>RequestIDFieldName represents the name of the field in Redis hash containing request_id</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">RequestIDFieldName</div> <div class="operator">=</div> <div class="literal">&#34;request_id&#34;</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>ReceivedTimestampFieldName represents the name of the field in Redis hash containing received timestamp</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">ReceivedTimestampFieldName</div> <div class="operator">=</div> <div class="literal">&#34;received_timestamp&#34;</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>ProcessedTimestampFieldName represents the name of the field in Redis hash containing processed timestamp</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">ProcessedTimestampFieldName</div> <div class="operator">=</div> <div class="literal">&#34;processed_timestamp&#34;</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>RuleHitsFieldName represent the name of hte field in Redis hash containing simplified rule hits</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">RuleHitsFieldName</div>          <div class="operator">=</div> <div class="literal">&#34;rule_hits&#34;</div><div class="operator"></div>
+	<div class="ident">redisCmdExecutionFailedMsg</div> <div class="operator">=</div> <div class="literal">&#34;failed to execute command against Redis server&#34;</div><div class="operator"></div>
+<div class="operator">)</div><div class="operator"></div>
+
+<div class="keyword">var</div> <div class="operator">(</div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>RequestIDsScanPattern is a glob-style pattern to find all matching keys. Uses ?* instead of * to avoid
+matching &quot;organization:%v:cluster:%v:request:&quot;</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">RequestIDsScanPattern</div> <div class="operator">=</div> <div class="literal">&#34;organization:%v:cluster:%v:request:?*&#34;</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>SimplifiedReportKey is a key under which the information about specific requests is stored</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">SimplifiedReportKey</div> <div class="operator">=</div> <div class="literal">&#34;organization:%v:cluster:%v:request:%v:reports&#34;</div><div class="operator"></div>
+<div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>RedisInterface represents interface for functions executed against a Redis server</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">type</div> <div class="ident">RedisInterface</div> <div class="keyword">interface</div> <div class="operator">{</div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>HealthCheck defined in utils</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">HealthCheck</div><div class="operator">(</div><div class="operator">)</div> <div class="ident">error</div><div class="operator"></div>
+	<div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">ClusterName</div><div class="operator">,</div>
+	<div class="operator">)</div> <div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div> <div class="ident">error</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">ClusterName</div><div class="operator">,</div>
+		<div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div>
+		<div class="ident">bool</div><div class="operator">,</div>
+	<div class="operator">)</div> <div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">,</div> <div class="ident">error</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">ClusterName</div><div class="operator">,</div>
+		<div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div>
+	<div class="operator">)</div> <div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RuleID</div><div class="operator">,</div> <div class="ident">error</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>RedisClient is a local type which embeds the imported redis.Client to include its own functionality</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">type</div> <div class="ident">RedisClient</div> <div class="keyword">struct</div> <div class="operator">{</div>
+	<div class="ident">redis</div><div class="operator">.</div><div class="ident">Client</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>NewRedisClient creates a new Redis client based on configuration and returns RedisInterface</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">func</div> <div class="ident">NewRedisClient</div><div class="operator">(</div><div class="ident">conf</div> <div class="ident">RedisConfiguration</div><div class="operator">)</div> <div class="operator">(</div><div class="ident">RedisInterface</div><div class="operator">,</div> <div class="ident">error</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">redis</div><div class="operator">.</div><div class="ident">CreateRedisClient</div><div class="operator">(</div>
+		<div class="ident">conf</div><div class="operator">.</div><div class="ident">RedisEndpoint</div><div class="operator">,</div>
+		<div class="ident">conf</div><div class="operator">.</div><div class="ident">RedisDatabase</div><div class="operator">,</div>
+		<div class="ident">conf</div><div class="operator">.</div><div class="ident">RedisPassword</div><div class="operator">,</div>
+		<div class="ident">conf</div><div class="operator">.</div><div class="ident">RedisTimeoutSeconds</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">if</div> <div class="ident">err</div> <div class="operator">!=</div> <div class="ident">nil</div> <div class="operator">{</div>
+		<div class="keyword">return</div> <div class="ident">nil</div><div class="operator">,</div> <div class="ident">err</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="keyword">return</div> <div class="operator">&amp;</div><div class="ident">RedisClient</div><div class="operator">{</div>
+		<div class="ident">redis</div><div class="operator">.</div><div class="ident">Client</div><div class="operator">{</div><div class="ident">Connection</div><div class="operator">:</div> <div class="ident">client</div><div class="operator">}</div><div class="operator">,</div>
+	<div class="operator">}</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>GetRequestIDsForClusterID retrieves a list of request IDs from Redis.
+&quot;List&quot; of request IDs is in the form of keys with empty values in the following structure:
+organization:{org<em>id}:cluster:{cluster</em>id}:request:{request_id1}.</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">func</div> <div class="operator">(</div><div class="ident">redis</div> <div class="operator">*</div><div class="ident">RedisClient</div><div class="operator">)</div> <div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div>
+	<div class="ident">orgID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div>
+	<div class="ident">clusterID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">ClusterName</div><div class="operator">,</div>
+<div class="operator">)</div> <div class="operator">(</div><div class="ident">requestIDs</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div> <div class="ident">err</div> <div class="ident">error</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">ctx</div> <div class="operator">:=</div> <div class="ident">context</div><div class="operator">.</div><div class="ident">Background</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">scanKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">RequestIDsScanPattern</div><div class="operator">,</div> <div class="ident">orgID</div><div class="operator">,</div> <div class="ident">clusterID</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">log</div><div class="operator">.</div><div class="ident">Debug</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Str</div><div class="operator">(</div><div class="literal">&#34;Scan key&#34;</div><div class="operator">,</div> <div class="ident">scanKey</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msg</div><div class="operator">(</div><div class="literal">&#34;Key to retrieve item from Redis&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="keyword">var</div> <div class="ident">cursor</div> <div class="ident">uint64</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="operator">{</div>
+		<div class="keyword">var</div> <div class="ident">keys</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator"></div>
+		<div class="keyword">var</div> <div class="ident">err</div> <div class="ident">error</div><div class="operator"></div>
+		<div class="ident">keys</div><div class="operator">,</div> <div class="ident">cursor</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">=</div> <div class="ident">redis</div><div class="operator">.</div><div class="ident">Client</div><div class="operator">.</div><div class="ident">Connection</div><div class="operator">.</div><div class="ident">Scan</div><div class="operator">(</div><div class="ident">ctx</div><div class="operator">,</div> <div class="ident">cursor</div><div class="operator">,</div> <div class="ident">scanKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Result</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">if</div> <div class="ident">err</div> <div class="operator">!=</div> <div class="ident">nil</div> <div class="operator">{</div>
+			<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="ident">err</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msgf</div><div class="operator">(</div><div class="literal">&#34;failed to execute SCAN command for key &#39;%v&#39; and cursor &#39;%d&#39;&#34;</div><div class="operator">,</div> <div class="ident">scanKey</div><div class="operator">,</div> <div class="ident">cursor</div><div class="operator">)</div><div class="operator"></div>
+			<div class="keyword">return</div> <div class="ident">nil</div><div class="operator">,</div> <div class="ident">err</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>get last part of key == request_id</p>
+</td>
+	<td class="code"><pre><code>		<div class="keyword">for</div> <div class="ident">_</div><div class="operator">,</div> <div class="ident">key</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">keys</div> <div class="operator">{</div>
+			<div class="ident">keySliced</div> <div class="operator">:=</div> <div class="ident">strings</div><div class="operator">.</div><div class="ident">Split</div><div class="operator">(</div><div class="ident">key</div><div class="operator">,</div> <div class="literal">&#34;:&#34;</div><div class="operator">)</div><div class="operator"></div>
+			<div class="ident">requestID</div> <div class="operator">:=</div> <div class="ident">keySliced</div><div class="operator">[</div><div class="ident">len</div><div class="operator">(</div><div class="ident">keySliced</div><div class="operator">)</div><div class="operator">-</div><div class="literal">1</div><div class="operator">]</div><div class="operator"></div>
+			<div class="ident">requestIDs</div> <div class="operator">=</div> <div class="ident">append</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestID</div><div class="operator">)</div><div class="operator">)</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+
+		<div class="keyword">if</div> <div class="ident">cursor</div> <div class="operator">==</div> <div class="literal">0</div> <div class="operator">{</div>
+			<div class="keyword">break</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+	<div class="ident">log</div><div class="operator">.</div><div class="ident">Info</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msgf</div><div class="operator">(</div><div class="literal">&#34;retrieved %d request IDs for cluster_id %v: %v&#34;</div><div class="operator">,</div> <div class="ident">len</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">)</div><div class="operator">,</div> <div class="ident">clusterID</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="keyword">return</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>GetTimestampsForRequestIDs retrieves the 'received' and 'processed' timestamps of each Request
+for given list of Request IDs. It doesn't retrieve the whole Hash, but only the fields we need.
+It utilizes Redis pipelines in order to avoid multiple client-server round trips.</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">func</div> <div class="operator">(</div><div class="ident">redis</div> <div class="operator">*</div><div class="ident">RedisClient</div><div class="operator">)</div> <div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div>
+	<div class="ident">orgID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div>
+	<div class="ident">clusterID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">ClusterName</div><div class="operator">,</div>
+	<div class="ident">requestIDs</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div>
+	<div class="ident">omitMissing</div> <div class="ident">bool</div><div class="operator">,</div>
+<div class="operator">)</div> <div class="operator">(</div><div class="ident">requestStatuses</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">,</div> <div class="ident">err</div> <div class="ident">error</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">ctx</div> <div class="operator">:=</div> <div class="ident">context</div><div class="operator">.</div><div class="ident">Background</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>prepare keys to be used in HMGet commands</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">keys</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="ident">len</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">)</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">i</div><div class="operator">,</div> <div class="ident">requestID</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">requestIDs</div> <div class="operator">{</div>
+		<div class="ident">keys</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">orgID</div><div class="operator">,</div> <div class="ident">clusterID</div><div class="operator">,</div> <div class="ident">requestID</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>queue commands in Redis pipeline. EXEC command is issued upon function exit</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">commands</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">redis</div><div class="operator">.</div><div class="ident">Client</div><div class="operator">.</div><div class="ident">Connection</div><div class="operator">.</div><div class="ident">Pipelined</div><div class="operator">(</div><div class="ident">ctx</div><div class="operator">,</div> <div class="keyword">func</div><div class="operator">(</div><div class="ident">pipe</div> <div class="ident">redisV9</div><div class="operator">.</div><div class="ident">Pipeliner</div><div class="operator">)</div> <div class="ident">error</div> <div class="operator">{</div>
+		<div class="keyword">for</div> <div class="ident">_</div><div class="operator">,</div> <div class="ident">key</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">keys</div> <div class="operator">{</div>
+			<div class="ident">pipe</div><div class="operator">.</div><div class="ident">HMGet</div><div class="operator">(</div><div class="ident">ctx</div><div class="operator">,</div> <div class="ident">key</div><div class="operator">,</div> <div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">ProcessedTimestampFieldName</div><div class="operator">)</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+		<div class="keyword">return</div> <div class="ident">nil</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">if</div> <div class="ident">err</div> <div class="operator">!=</div> <div class="ident">nil</div> <div class="operator">{</div>
+		<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="ident">err</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msg</div><div class="operator">(</div><div class="ident">redisCmdExecutionFailedMsg</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">return</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>iterate over results issued in pipeline. Even though we know len(commands),
+some keys might be missing and we might want to omit them, so we can't initialize slice safely</p>
+</td>
+	<td class="code"><pre><code>	<div class="keyword">for</div> <div class="ident">i</div><div class="operator">,</div> <div class="ident">cmd</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">commands</div> <div class="operator">{</div>
+		<div class="keyword">var</div> <div class="ident">report</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator"></div>
+
+		<div class="ident">err</div> <div class="operator">=</div> <div class="ident">cmd</div><div class="operator">.</div><div class="operator">(</div><div class="operator">*</div><div class="ident">redisV9</div><div class="operator">.</div><div class="ident">SliceCmd</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Scan</div><div class="operator">(</div><div class="operator">&amp;</div><div class="ident">report</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">if</div> <div class="ident">err</div> <div class="operator">!=</div> <div class="ident">nil</div> <div class="operator">{</div>
+			<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="ident">err</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msg</div><div class="operator">(</div><div class="ident">redisCmdExecutionFailedMsg</div><div class="operator">)</div><div class="operator"></div>
+			<div class="keyword">return</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">{</div><div class="operator">}</div><div class="operator">,</div> <div class="ident">err</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>omit missing data or invalidate the request</p>
+</td>
+	<td class="code"><pre><code>		<div class="keyword">if</div> <div class="ident">report</div><div class="operator">.</div><div class="ident">RequestID</div> <div class="operator">==</div> <div class="literal">&#34;&#34;</div> <div class="operator">{</div>
+			<div class="keyword">if</div> <div class="ident">omitMissing</div> <div class="operator">{</div>
+				<div class="keyword">continue</div><div class="operator"></div>
+			<div class="operator">}</div> <div class="keyword">else</div> <div class="operator">{</div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>commands in Redis pipeline are guaranteed to be executed in the order they were issued in,
+therefore we can get the missing request ID from the original slice</p>
+</td>
+	<td class="code"><pre><code>				<div class="ident">report</div><div class="operator">.</div><div class="ident">RequestID</div> <div class="operator">=</div> <div class="ident">string</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div><div class="operator">)</div><div class="operator"></div>
+				<div class="ident">report</div><div class="operator">.</div><div class="ident">Valid</div> <div class="operator">=</div> <div class="ident">false</div><div class="operator"></div>
+			<div class="operator">}</div><div class="operator"></div>
+		<div class="operator">}</div> <div class="keyword">else</div> <div class="operator">{</div>
+			<div class="ident">report</div><div class="operator">.</div><div class="ident">Valid</div> <div class="operator">=</div> <div class="ident">true</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>everything went fine, add to the response</p>
+</td>
+	<td class="code"><pre><code>		<div class="ident">requestStatuses</div> <div class="operator">=</div> <div class="ident">append</div><div class="operator">(</div><div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">report</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="keyword">return</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>GetRuleHitsForRequest is used to get the rule_hits field from Hash type
+stored in Redis.</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">func</div> <div class="operator">(</div><div class="ident">redis</div> <div class="operator">*</div><div class="ident">RedisClient</div><div class="operator">)</div> <div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div>
+	<div class="ident">orgID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div>
+	<div class="ident">clusterID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">ClusterName</div><div class="operator">,</div>
+	<div class="ident">requestID</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div>
+<div class="operator">)</div> <div class="operator">(</div><div class="ident">ruleHits</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RuleID</div><div class="operator">,</div> <div class="ident">err</div> <div class="ident">error</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="keyword">var</div> <div class="ident">simplifiedReport</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">SimplifiedReport</div><div class="operator"></div>
+
+	<div class="ident">ctx</div> <div class="operator">:=</div> <div class="ident">context</div><div class="operator">.</div><div class="ident">Background</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">key</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">orgID</div><div class="operator">,</div> <div class="ident">clusterID</div><div class="operator">,</div> <div class="ident">requestID</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">cmd</div> <div class="operator">:=</div> <div class="ident">redis</div><div class="operator">.</div><div class="ident">Client</div><div class="operator">.</div><div class="ident">Connection</div><div class="operator">.</div><div class="ident">HMGet</div><div class="operator">(</div><div class="ident">ctx</div><div class="operator">,</div> <div class="ident">key</div><div class="operator">,</div> <div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">RuleHitsFieldName</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">if</div> <div class="ident">err</div> <div class="operator">=</div> <div class="ident">cmd</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="operator">)</div><div class="operator">;</div> <div class="ident">err</div> <div class="operator">!=</div> <div class="ident">nil</div> <div class="operator">{</div>
+		<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="ident">err</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msg</div><div class="operator">(</div><div class="ident">redisCmdExecutionFailedMsg</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">return</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="ident">err</div> <div class="operator">=</div> <div class="ident">cmd</div><div class="operator">.</div><div class="ident">Scan</div><div class="operator">(</div><div class="operator">&amp;</div><div class="ident">simplifiedReport</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">if</div> <div class="ident">err</div> <div class="operator">!=</div> <div class="ident">nil</div> <div class="operator">{</div>
+		<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="ident">err</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msg</div><div class="operator">(</div><div class="literal">&#34;failed to scan result map into a struct&#34;</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">return</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>report not found in storage</p>
+</td>
+	<td class="code"><pre><code>	<div class="keyword">if</div> <div class="ident">simplifiedReport</div><div class="operator">.</div><div class="ident">RequestID</div> <div class="operator">==</div> <div class="literal">&#34;&#34;</div> <div class="operator">{</div>
+		<div class="ident">err</div> <div class="operator">=</div> <div class="operator">&amp;</div><div class="ident">utypes</div><div class="operator">.</div><div class="ident">ItemNotFoundError</div><div class="operator">{</div><div class="ident">ItemID</div><div class="operator">:</div> <div class="ident">requestID</div><div class="operator">}</div><div class="operator"></div>
+		<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Err</div><div class="operator">(</div><div class="ident">err</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msgf</div><div class="operator">(</div><div class="literal">&#34;request data for request_id %v not found in Redis&#34;</div><div class="operator">,</div> <div class="ident">requestID</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">return</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>validate rule IDs coming from Redis</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">ruleHitsSplit</div> <div class="operator">:=</div> <div class="ident">strings</div><div class="operator">.</div><div class="ident">Split</div><div class="operator">(</div><div class="ident">simplifiedReport</div><div class="operator">.</div><div class="ident">RuleHitsCSV</div><div class="operator">,</div> <div class="literal">&#34;,&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">_</div><div class="operator">,</div> <div class="ident">ruleHit</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">ruleHitsSplit</div> <div class="operator">{</div>
+		<div class="ident">ruleIDRegex</div> <div class="operator">:=</div> <div class="ident">regexp</div><div class="operator">.</div><div class="ident">MustCompile</div><div class="operator">(</div><div class="literal">`^([a-zA-Z_0-9.]&#43;)[|]([a-zA-Z_0-9.]&#43;)$`</div><div class="operator">)</div><div class="operator"></div>
+
+		<div class="ident">isRuleIDValid</div> <div class="operator">:=</div> <div class="ident">ruleIDRegex</div><div class="operator">.</div><div class="ident">MatchString</div><div class="operator">(</div><div class="ident">ruleHit</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">if</div> <div class="operator">!</div><div class="ident">isRuleIDValid</div> <div class="operator">{</div>
+			<div class="ident">log</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Msgf</div><div class="operator">(</div><div class="literal">&#34;rule_id %v retrieved from Redis is in invalid format&#34;</div><div class="operator">,</div> <div class="ident">ruleHit</div><div class="operator">)</div><div class="operator"></div>
+			<div class="keyword">continue</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+
+		<div class="ident">ruleHits</div> <div class="operator">=</div> <div class="ident">append</div><div class="operator">(</div><div class="ident">ruleHits</div><div class="operator">,</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RuleID</div><div class="operator">(</div><div class="ident">ruleHit</div><div class="operator">)</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="keyword">return</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

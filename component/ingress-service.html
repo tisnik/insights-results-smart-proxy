@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Insights Results Smart Proxy | Smart Proxy service for Openshift insights results</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Insights Results Smart Proxy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Smart Proxy service for Openshift insights results" />
+<meta property="og:description" content="Smart Proxy service for Openshift insights results" />
+<link rel="canonical" href="https://redhatinsights.github.io/insights-results-smart-proxy/component/ingress-service.html" />
+<meta property="og:url" content="https://redhatinsights.github.io/insights-results-smart-proxy/component/ingress-service.html" />
+<meta property="og:site_name" content="Insights Results Smart Proxy" />
+<script type="application/ld+json">
+{"description":"Smart Proxy service for Openshift insights results","url":"https://redhatinsights.github.io/insights-results-smart-proxy/component/ingress-service.html","@type":"WebPage","headline":"Insights Results Smart Proxy","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/insights-results-smart-proxy/assets/css/style.css?v=">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://redhatinsights.github.io/insights-results-smart-proxy/">Insights Results Smart Proxy</a></h1>
+      
+
+      <p>[<a href="/insights-results-smart-proxy/overall-architecture.html">Front page</a>] [<a href="/insights-results-smart-proxy/overall-architecture.html">Overall architecture</a>]</p>
+
+<h1 id="component-ingress">Component: <code class="language-plaintext highlighter-rouge">Ingress</code></h1>
+
+<h2 id="type">Type</h2>
+
+<ul>
+  <li>Service</li>
+</ul>
+
+<h2 id="description">Description</h2>
+
+<p><em>Ingress</em> is a component of cloud.redhat.com that allows for clients to upload
+data to Red Hat. The service sites behind a <em>3Scale gateway</em> that handles
+authentication, routing, and assignment of unique ID to the upload.</p>
+
+<p><em>Ingress</em> has an interface into cloud storage to retain customer data. It also
+connects to a Kafka message queue in order to notify services of new and
+available uploads for processing.</p>
+
+<h2 id="interfaces">Interfaces</h2>
+
+<ul>
+  <li>Input:
+    <ul>
+      <li>REST API endpoint(s) to upload data</li>
+    </ul>
+  </li>
+  <li>Output:
+    <ul>
+      <li>Kafka events</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="source-code">Source code</h2>
+
+<ul>
+  <li>Repository: <a href="https://github.com/RedHatInsights/insights-ingress-go">https://github.com/RedHatInsights/insights-ingress-go</a></li>
+  <li>Written in: Go</li>
+</ul>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/RedHatInsights/insights-results-smart-proxy/edit/gh-pages/component/ingress-service.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+  </body>
+</html>

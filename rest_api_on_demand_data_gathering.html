@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Interface with Insights Operator: on demand data gathering | Insights Results Smart Proxy</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Interface with Insights Operator: on demand data gathering" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Smart Proxy service for Openshift insights results" />
+<meta property="og:description" content="Smart Proxy service for Openshift insights results" />
+<link rel="canonical" href="https://redhatinsights.github.io/insights-results-smart-proxy/rest_api_on_demand_data_gathering.html" />
+<meta property="og:url" content="https://redhatinsights.github.io/insights-results-smart-proxy/rest_api_on_demand_data_gathering.html" />
+<meta property="og:site_name" content="Insights Results Smart Proxy" />
+<script type="application/ld+json">
+{"description":"Smart Proxy service for Openshift insights results","url":"https://redhatinsights.github.io/insights-results-smart-proxy/rest_api_on_demand_data_gathering.html","@type":"WebPage","headline":"Interface with Insights Operator: on demand data gathering","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/insights-results-smart-proxy/assets/css/style.css?v=">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://redhatinsights.github.io/insights-results-smart-proxy/">Insights Results Smart Proxy</a></h1>
+      
+
+      <h1 id="interface-with-insights-operator-on-demand-data-gathering">Interface with Insights Operator: on demand data gathering</h1>
+
+<h2 id="background">Background</h2>
+
+<p>On Demand Data Gathering feature allows customers to start data gathering (done using Insights Operator) at any time. This even allows starting multiple gatherings at the same time or during other gatherer(s) work in progress. In the end a bunch of IO raw archives will be sent into the External Data Pipeline (for example 5 results within one hour or even more - it’s out of our control).</p>
+
+<h2 id="implementation">Implementation</h2>
+
+<ol>
+  <li>Multiple rule hits (but in simplified format!) are now remembered within External Data Pipeline</li>
+  <li>These rule hits will are available to Insights Operator (and other clients) via new REST API endpoints</li>
+  <li>Just rule hits for last 24 hours need to be stored/remembered by External Data Pipeline</li>
+  <li>After 24 hours period it would be ok-ish to clean up these old records</li>
+</ol>
+
+<h2 id="new-rest-api-endpoints-specification">New REST API endpoints specification</h2>
+
+<p>REST API endpoints are described as OpenAPI that is available at <a href="https://developers.redhat.com/api-catalog/api/insights-results-aggregator_v2">https://developers.redhat.com/api-catalog/api/insights-results-aggregator_v2</a></p>
+
+<p>Please note that in order to access REST API, authorization token needs to be
+provided for most REST API endpoints (OpenAPI schema is the exception).</p>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/RedHatInsights/insights-results-smart-proxy/edit/gh-pages/rest_api_on_demand_data_gathering.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+  </body>
+</html>

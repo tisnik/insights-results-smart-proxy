@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<!--
+ Copyright 2023 Red Hat, Inc
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<html>
+<head>
+<title>redis_test.go</title>
+<meta charset="utf-8"/>
+<style type="text/css">body {
+    background: rgb(225, 225, 225);
+    margin: 0px;
+    padding: 0px;
+}
+
+#docgo p {
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    margin-left: 0px;
+}
+
+#docgo div {
+    display: inline;
+}
+
+#docgo #background {
+    position: fixed;
+    top: 0; left: 525px; right: 0; bottom: 0;
+    background: rgb(47, 47, 47);
+    border-left: 1px solid #e5e5ee;
+    z-index: -1;
+}
+
+#docgo .keyword {
+    color: rgb(250, 200, 100);
+}
+
+#docgo .literal {
+    color: rgb(140, 190, 100);
+}
+
+#docgo .ident {
+    color: white;
+}
+
+#docgo .operator {
+    color: white;
+}
+
+#docgo .comment {
+}
+
+#docgo h1, h2, h3, h4, h5 {
+    text-align: left;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    margin-left: 0px;
+}
+
+#docgo h1 {
+    margin-top: 40px;
+}
+
+#docgo .doc {
+    vertical-align: top;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+    font-size: 15px;
+    line-height: 22px;
+    color: black;
+    min-width: 450px;
+    max-width: 450px;
+    padding-top: 10px;
+    padding-right: 25px;
+    padding-bottom: 1px;
+    padding-left: 50px;
+    overflow-x: hidden;
+}
+
+#docgo .code {
+    min-width: 650px;
+    max-width: 650px;
+    padding-left: 25px;
+    padding-right: 15px;
+    border-left: 1px;
+    overflow-x: hidden;
+    vertical-align: top;
+}
+
+#docgo .code pre code  {
+    font-size: 12px;
+    line-height: 18px;
+    font-family: Menlo, Monaco, Consolas, "Lucida Console", monospace;
+    color: rgb(120, 120, 120);
+}
+</style>
+</head>
+<body>
+<div id="docgo">
+  <div id="background"></div>
+  <table>
+    <thead><tr><th class="doc"><h1>redis_test.go</h1></th><th class="code"></th></tr></thead>
+    <tbody>
+      
+      <tr class="section">
+	<td class="doc"><p>Copyright 2023 Red Hat, Inc</p>
+
+<p>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+
+<pre><code> http://www.apache.org/licenses/LICENSE-2.0
+</code></pre>
+
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+</td>
+	<td class="code"><pre><code></code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>Package services contains interface implementations to other
+services that are called from Smart Proxy.</p>
+</td>
+	<td class="code"><pre><code><div class="keyword">package</div> <div class="ident">services_test</div><div class="operator"></div>
+
+<div class="keyword">import</div> <div class="operator">(</div>
+	<div class="literal">&#34;errors&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;fmt&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;testing&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;time&#34;</div><div class="operator"></div>
+
+	<div class="ident">utypes</div> <div class="literal">&#34;github.com/RedHatInsights/insights-operator-utils/types&#34;</div><div class="operator"></div>
+	<div class="ident">data</div> <div class="literal">&#34;github.com/RedHatInsights/insights-results-aggregator-data/testdata&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/RedHatInsights/insights-results-smart-proxy/services&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/RedHatInsights/insights-results-smart-proxy/tests/helpers&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/RedHatInsights/insights-results-smart-proxy/tests/testdata&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/RedHatInsights/insights-results-smart-proxy/types&#34;</div><div class="operator"></div>
+	<div class="literal">&#34;github.com/stretchr/testify/assert&#34;</div><div class="operator"></div>
+<div class="operator">)</div><div class="operator"></div>
+
+<div class="keyword">var</div> <div class="operator">(</div>
+	<div class="ident">errTest</div>                <div class="operator">=</div> <div class="ident">errors</div><div class="operator">.</div><div class="ident">New</div><div class="operator">(</div><div class="literal">&#34;ka-boom&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">receivedTimestampTest</div>  <div class="operator">=</div> <div class="ident">time</div><div class="operator">.</div><div class="ident">Now</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Add</div><div class="operator">(</div><div class="operator">-</div><div class="ident">time</div><div class="operator">.</div><div class="ident">Minute</div><div class="operator">)</div><div class="operator">.</div><div class="ident">UTC</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Format</div><div class="operator">(</div><div class="ident">time</div><div class="operator">.</div><div class="ident">RFC3339</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">processedTimestampTest</div> <div class="operator">=</div> <div class="ident">time</div><div class="operator">.</div><div class="ident">Now</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">UTC</div><div class="operator">(</div><div class="operator">)</div><div class="operator">.</div><div class="ident">Format</div><div class="operator">(</div><div class="ident">time</div><div class="operator">.</div><div class="ident">RFC3339</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">testRuleHits</div>           <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;%v,%v&#34;</div><div class="operator">,</div> <div class="ident">data</div><div class="operator">.</div><div class="ident">Rule1CompositeID</div><div class="operator">,</div> <div class="ident">data</div><div class="operator">.</div><div class="ident">Rule2CompositeID</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">)</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestNewRedisClient</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">NewRedisClient</div><div class="operator">(</div><div class="ident">helpers</div><div class="operator">.</div><div class="ident">DefaultRedisConf</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NotNil</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">client</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestNewRedisClientBadAddress</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">conf</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">DefaultRedisConf</div><div class="operator"></div>
+	<div class="ident">conf</div><div class="operator">.</div><div class="ident">RedisEndpoint</div> <div class="operator">=</div> <div class="literal">&#34;&#34;</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>db index == -1</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">client</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">NewRedisClient</div><div class="operator">(</div><div class="ident">conf</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Nil</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">client</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestNewRedisClientDBIndexOutOfRange</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">conf</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">DefaultRedisConf</div><div class="operator"></div>
+	<div class="ident">conf</div><div class="operator">.</div><div class="ident">RedisDatabase</div> <div class="operator">=</div> <div class="operator">-</div><div class="literal">1</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>db index == -1</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">client</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">NewRedisClient</div><div class="operator">(</div><div class="ident">conf</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Nil</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">client</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestRedisGetRequestIDsForClusterID_Empty</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDsScanPattern</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">0</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">{</div><div class="operator">}</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestRedisGetRequestIDsForClusterID_ResultsSinglePage</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDsScanPattern</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedResponseKeys</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">2</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">i</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">expectedResponseKeys</div> <div class="operator">{</div>
+		<div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;organization:%v:cluster:%v:request:requestID%v&#34;</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="ident">i</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>all results are in a single page -- cursor == 0, so no more calls are expected</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">0</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="ident">expectedResponseKeys</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="literal">2</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">ElementsMatch</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID0&#34;</div><div class="operator">,</div> <div class="literal">&#34;requestID1&#34;</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestRedisGetRequestIDsForClusterID_ResultsMultiplePages</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedResponseKeys</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">4</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">i</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">expectedResponseKeys</div> <div class="operator">{</div>
+		<div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;organization:%v:cluster:%v:request:requestID%v&#34;</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="ident">i</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDsScanPattern</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">0</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">{</div><div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="literal">1</div><div class="operator">]</div><div class="operator">}</div><div class="operator">,</div> <div class="literal">42</div><div class="operator">)</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>returned cursor is expected to be used in the next call</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">42</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">{</div><div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">}</div><div class="operator">,</div> <div class="literal">8</div><div class="operator">)</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>returned cursor is expected to be used in the next call</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">8</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">{</div><div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="literal">3</div><div class="operator">]</div><div class="operator">}</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>returned cursor == 0, so no more calls are expected</p>
+</td>
+	<td class="code"><pre><code>
+	<div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">len</div><div class="operator">(</div><div class="ident">expectedResponseKeys</div><div class="operator">)</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">ElementsMatch</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID0&#34;</div><div class="operator">,</div> <div class="literal">&#34;requestID1&#34;</div><div class="operator">,</div> <div class="literal">&#34;requestID2&#34;</div><div class="operator">,</div> <div class="literal">&#34;requestID3&#34;</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestRedisGetRequestIDsForClusterID_Error</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDsScanPattern</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">0</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetErr</div><div class="operator">(</div><div class="ident">errTest</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestRedisGetRequestIDsForClusterID_ErrorInFollowingCalls</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDsScanPattern</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedResponseKeys</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">2</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">i</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">expectedResponseKeys</div> <div class="operator">{</div>
+		<div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;organization:%v:cluster:%v:request:requestID%v&#34;</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="ident">i</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">0</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">{</div><div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">expectedResponseKeys</div><div class="operator">[</div><div class="literal">1</div><div class="operator">]</div><div class="operator">}</div><div class="operator">,</div> <div class="literal">42</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectScan</div><div class="operator">(</div><div class="literal">42</div><div class="operator">,</div> <div class="ident">expectedKey</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator">.</div><div class="ident">SetErr</div><div class="operator">(</div><div class="ident">errTest</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>function should return empty list + error if we can't retrieve the whole data set</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">requestIDs</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRequestIDsForClusterID</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_OKFound</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">,</div> <div class="ident">processedTimestampTest</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">}</div><div class="operator">,</div> <div class="ident">true</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="literal">1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">Received</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">Processed</div><div class="operator">,</div> <div class="ident">processedTimestampTest</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">Valid</div><div class="operator">,</div> <div class="ident">true</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_OKNotFoundOmitMissing</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">_</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">}</div><div class="operator">,</div> <div class="ident">true</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_OKNotFoundIncludeMissing</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">}</div><div class="operator">,</div> <div class="ident">false</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="literal">1</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">Received</div><div class="operator">,</div> <div class="literal">&#34;&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">Processed</div><div class="operator">,</div> <div class="literal">&#34;&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Equal</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">.</div><div class="ident">Valid</div><div class="operator">,</div> <div class="ident">false</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_OKMultipleOmitMissing</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKeys</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">3</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">requestIDs</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">3</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">i</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">expectedKeys</div> <div class="operator">{</div>
+		<div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;requestID%d&#34;</div><div class="operator">,</div> <div class="ident">i</div><div class="operator">)</div><div class="operator"></div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div><div class="operator">)</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>second request_id won't be found</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">expectedResponse</div> <div class="operator">:=</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">{</div>
+		<div class="operator">{</div>
+			<div class="ident">RequestID</div><div class="operator">:</div> <div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div>
+			<div class="ident">Valid</div><div class="operator">:</div>     <div class="ident">true</div><div class="operator">,</div>
+			<div class="ident">Received</div><div class="operator">:</div>  <div class="ident">receivedTimestampTest</div><div class="operator">,</div>
+			<div class="ident">Processed</div><div class="operator">:</div> <div class="ident">processedTimestampTest</div><div class="operator">,</div>
+		<div class="operator">}</div><div class="operator">,</div>
+		<div class="operator">{</div>
+			<div class="ident">RequestID</div><div class="operator">:</div> <div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">,</div>
+			<div class="ident">Valid</div><div class="operator">:</div>     <div class="ident">true</div><div class="operator">,</div>
+			<div class="ident">Received</div><div class="operator">:</div>  <div class="ident">receivedTimestampTest</div><div class="operator">,</div>
+			<div class="ident">Processed</div><div class="operator">:</div> <div class="ident">processedTimestampTest</div><div class="operator">,</div>
+		<div class="operator">}</div><div class="operator">,</div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">,</div> <div class="ident">processedTimestampTest</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>2nd result was not found</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="literal">1</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">,</div> <div class="ident">processedTimestampTest</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>omitMissing == true</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div>
+		<div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div>
+			<div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">)</div><div class="operator">,</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">1</div><div class="operator">]</div><div class="operator">)</div><div class="operator">,</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">)</div><div class="operator">,</div>
+		<div class="operator">}</div><div class="operator">,</div> <div class="ident">true</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>2nd result was ommitted</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="literal">2</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">ElementsMatch</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">expectedResponse</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_OKMultipleIncludeMissing</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedResponse</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">,</div> <div class="literal">3</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">expectedKeys</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">3</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">requestIDs</div> <div class="operator">:=</div> <div class="ident">make</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="ident">string</div><div class="operator">,</div> <div class="literal">3</div><div class="operator">)</div><div class="operator"></div>
+	<div class="keyword">for</div> <div class="ident">i</div> <div class="operator">:=</div> <div class="keyword">range</div> <div class="ident">expectedKeys</div> <div class="operator">{</div>
+		<div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;requestID%d&#34;</div><div class="operator">,</div> <div class="ident">i</div><div class="operator">)</div><div class="operator"></div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div><div class="operator">)</div><div class="operator"></div>
+		<div class="keyword">if</div> <div class="ident">i</div><div class="operator">%</div><div class="literal">2</div> <div class="operator">==</div> <div class="literal">0</div> <div class="operator">{</div>
+			<div class="ident">expectedResponse</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">{</div>
+				<div class="ident">RequestID</div><div class="operator">:</div> <div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div><div class="operator">,</div>
+				<div class="ident">Valid</div><div class="operator">:</div>     <div class="ident">true</div><div class="operator">,</div>
+				<div class="ident">Received</div><div class="operator">:</div>  <div class="ident">receivedTimestampTest</div><div class="operator">,</div>
+				<div class="ident">Processed</div><div class="operator">:</div> <div class="ident">processedTimestampTest</div><div class="operator">,</div>
+			<div class="operator">}</div><div class="operator"></div>
+		<div class="operator">}</div> <div class="keyword">else</div> <div class="operator">{</div>
+			<div class="ident">expectedResponse</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div> <div class="operator">=</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestStatus</div><div class="operator">{</div>
+				<div class="ident">RequestID</div><div class="operator">:</div> <div class="ident">requestIDs</div><div class="operator">[</div><div class="ident">i</div><div class="operator">]</div><div class="operator">,</div>
+				<div class="ident">Valid</div><div class="operator">:</div>     <div class="ident">false</div><div class="operator">,</div>
+				<div class="ident">Received</div><div class="operator">:</div>  <div class="literal">&#34;&#34;</div><div class="operator">,</div>
+				<div class="ident">Processed</div><div class="operator">:</div> <div class="literal">&#34;&#34;</div><div class="operator">,</div>
+			<div class="operator">}</div><div class="operator"></div>
+		<div class="operator">}</div><div class="operator"></div>
+	<div class="operator">}</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">,</div> <div class="ident">processedTimestampTest</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="literal">1</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKeys</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">,</div> <div class="ident">processedTimestampTest</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>omitMissing == false</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div>
+		<div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div>
+			<div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">0</div><div class="operator">]</div><div class="operator">)</div><div class="operator">,</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">1</div><div class="operator">]</div><div class="operator">)</div><div class="operator">,</div> <div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">(</div><div class="ident">requestIDs</div><div class="operator">[</div><div class="literal">2</div><div class="operator">]</div><div class="operator">)</div><div class="operator">,</div>
+		<div class="operator">}</div><div class="operator">,</div> <div class="ident">false</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="literal">3</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">ElementsMatch</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">expectedResponse</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_Error</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetErr</div><div class="operator">(</div><div class="ident">errTest</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">}</div><div class="operator">,</div> <div class="ident">true</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetTimestampsForRequestIDs_ScanError</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>mismatched number of keys and values</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ReceivedTimestampFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">ProcessedTimestampFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">,</div> <div class="ident">receivedTimestampTest</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">requestStatuses</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetTimestampsForRequestIDs</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="operator">[</div><div class="operator">]</div><div class="ident">types</div><div class="operator">.</div><div class="ident">RequestID</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">}</div><div class="operator">,</div> <div class="ident">true</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">requestStatuses</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetRuleHitsForRequest_OKFound</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RuleHitsFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">,</div> <div class="ident">testRuleHits</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">ruleHits</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">ruleHits</div><div class="operator">,</div> <div class="literal">2</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetRuleHitsForRequest_OKNotFound</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RuleHitsFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="ident">nil</div><div class="operator">,</div> <div class="ident">nil</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">ruleHits</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">IsType</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">,</div> <div class="operator">&amp;</div><div class="ident">utypes</div><div class="operator">.</div><div class="ident">ItemNotFoundError</div><div class="operator">{</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">ruleHits</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetRuleHitsForRequest_FoundInvalidRuleID</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">ruleHits1Invalid</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="literal">&#34;%v,%v&#34;</div><div class="operator">,</div> <div class="ident">data</div><div class="operator">.</div><div class="ident">Rule1CompositeID</div><div class="operator">,</div> <div class="ident">data</div><div class="operator">.</div><div class="ident">Rule1ID</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RuleHitsFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">,</div> <div class="ident">ruleHits1Invalid</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">ruleHits</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>no error, but only 1 rule hit</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">assert</div><div class="operator">.</div><div class="ident">NoError</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">ruleHits</div><div class="operator">,</div> <div class="literal">1</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetRuleHitsForRequest_Error</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>mismatched number of keys and values</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RuleHitsFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetErr</div><div class="operator">(</div><div class="ident">errTest</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">ruleHits</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">ruleHits</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+<div class="keyword">func</div> <div class="ident">TestGetRuleHitsForRequest_OKScanError</div><div class="operator">(</div><div class="ident">t</div> <div class="operator">*</div><div class="ident">testing</div><div class="operator">.</div><div class="ident">T</div><div class="operator">)</div> <div class="operator">{</div>
+	<div class="ident">client</div><div class="operator">,</div> <div class="ident">server</div> <div class="operator">:=</div> <div class="ident">helpers</div><div class="operator">.</div><div class="ident">GetMockRedis</div><div class="operator">(</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">expectedKey</div> <div class="operator">:=</div> <div class="ident">fmt</div><div class="operator">.</div><div class="ident">Sprintf</div><div class="operator">(</div><div class="ident">services</div><div class="operator">.</div><div class="ident">SimplifiedReportKey</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+      <tr class="section">
+	<td class="doc"><p>mismatched number of keys and values</p>
+</td>
+	<td class="code"><pre><code>	<div class="ident">server</div><div class="operator">.</div><div class="ident">ExpectHMGet</div><div class="operator">(</div>
+		<div class="ident">expectedKey</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RequestIDFieldName</div><div class="operator">,</div> <div class="ident">services</div><div class="operator">.</div><div class="ident">RuleHitsFieldName</div><div class="operator">,</div>
+	<div class="operator">)</div><div class="operator">.</div><div class="ident">SetVal</div><div class="operator">(</div><div class="operator">[</div><div class="operator">]</div><div class="keyword">interface</div><div class="operator">{</div><div class="operator">}</div><div class="operator">{</div><div class="literal">&#34;requestID123&#34;</div><div class="operator">}</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">ruleHits</div><div class="operator">,</div> <div class="ident">err</div> <div class="operator">:=</div> <div class="ident">client</div><div class="operator">.</div><div class="ident">GetRuleHitsForRequest</div><div class="operator">(</div><div class="ident">testdata</div><div class="operator">.</div><div class="ident">OrgID</div><div class="operator">,</div> <div class="ident">testdata</div><div class="operator">.</div><div class="ident">ClusterName1</div><div class="operator">,</div> <div class="literal">&#34;requestID123&#34;</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Error</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">err</div><div class="operator">)</div><div class="operator"></div>
+	<div class="ident">assert</div><div class="operator">.</div><div class="ident">Len</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">ruleHits</div><div class="operator">,</div> <div class="literal">0</div><div class="operator">)</div><div class="operator"></div>
+
+	<div class="ident">helpers</div><div class="operator">.</div><div class="ident">RedisExpectationsMet</div><div class="operator">(</div><div class="ident">t</div><div class="operator">,</div> <div class="ident">server</div><div class="operator">)</div><div class="operator"></div>
+<div class="operator">}</div><div class="operator"></div>
+
+</code></pre></td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

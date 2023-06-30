@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Insights Results Smart Proxy | Smart Proxy service for Openshift insights results</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Insights Results Smart Proxy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Smart Proxy service for Openshift insights results" />
+<meta property="og:description" content="Smart Proxy service for Openshift insights results" />
+<link rel="canonical" href="https://redhatinsights.github.io/insights-results-smart-proxy/component/ccx-notification-service.html" />
+<meta property="og:url" content="https://redhatinsights.github.io/insights-results-smart-proxy/component/ccx-notification-service.html" />
+<meta property="og:site_name" content="Insights Results Smart Proxy" />
+<script type="application/ld+json">
+{"description":"Smart Proxy service for Openshift insights results","url":"https://redhatinsights.github.io/insights-results-smart-proxy/component/ccx-notification-service.html","@type":"WebPage","headline":"Insights Results Smart Proxy","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/insights-results-smart-proxy/assets/css/style.css?v=">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://redhatinsights.github.io/insights-results-smart-proxy/">Insights Results Smart Proxy</a></h1>
+      
+
+      <p>[<a href="/insights-results-smart-proxy/overall-architecture.html">Front page</a>] [<a href="/insights-results-smart-proxy/overall-architecture.html">Overall architecture</a>]</p>
+
+<h1 id="component-ccx-notification-service">Component: <code class="language-plaintext highlighter-rouge">CCX Notification Service</code></h1>
+
+<h2 id="type">Type</h2>
+
+<ul>
+  <li>Service</li>
+</ul>
+
+<h2 id="description">Description</h2>
+
+<p>The purpose of this service is to enable sending automatic email notifications
+and ServiceLog events to users for all serious issues found in their OpenShift
+clusters. The “instant” mode of this service runs as a cronjob every fifteen
+minutes, and it sends a sequence of events to the configured Kafka topic so
+that the
+<a href="https://github.com/RedHatInsights/notifications-backend">notification-backend</a>
+can process them and create email notifications based on the provided events.
+Additionally ServiceLog events are created, these can be displayed on cluster
+pages. Currently the events are only created for the <strong>important</strong> and
+<strong>critical</strong> issues found in the <code class="language-plaintext highlighter-rouge">new_reports</code> table of the configured
+PostgreSQL database. Once the reports are processed, the DB is updated with
+info about sent events by populating the <code class="language-plaintext highlighter-rouge">reported</code> table with the
+corresponding information. For more info about initialising the database and
+perform migrations, take a look at the <a href="https://github.com/RedHatInsights/ccx-notification-writer">ccx-notification-writer
+repository</a>.</p>
+
+<h2 id="interfaces">Interfaces</h2>
+
+<ul>
+  <li>Input:
+    <ul>
+      <li>New reports and already reported reports read from SQL storage</li>
+    </ul>
+  </li>
+  <li>Output:
+    <ul>
+      <li>Messages send to Notification Backend</li>
+      <li>Messages send to ServiceLog</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="grafana-dashboard">Grafana dashboard</h2>
+
+<ul>
+  <li><a href="https://grafana.app-sre.devshift.net/d/ERzLEqdnk/ccx-notification-services?orgId=1&amp;refresh=30m">https://grafana.app-sre.devshift.net/d/ERzLEqdnk/ccx-notification-services?orgId=1&amp;refresh=30m</a></li>
+</ul>
+
+<h2 id="source-code">Source code</h2>
+
+<ul>
+  <li>Repository: <a href="https://github.com/RedHatInsights/ccx-notification-service">https://github.com/RedHatInsights/ccx-notification-service</a></li>
+  <li>Written in: Go</li>
+</ul>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/RedHatInsights/insights-results-smart-proxy/edit/gh-pages/component/ccx-notification-service.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+  </body>
+</html>

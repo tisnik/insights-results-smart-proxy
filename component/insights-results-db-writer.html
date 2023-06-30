@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Insights Results Smart Proxy | Smart Proxy service for Openshift insights results</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Insights Results Smart Proxy" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Smart Proxy service for Openshift insights results" />
+<meta property="og:description" content="Smart Proxy service for Openshift insights results" />
+<link rel="canonical" href="https://redhatinsights.github.io/insights-results-smart-proxy/component/insights-results-db-writer.html" />
+<meta property="og:url" content="https://redhatinsights.github.io/insights-results-smart-proxy/component/insights-results-db-writer.html" />
+<meta property="og:site_name" content="Insights Results Smart Proxy" />
+<script type="application/ld+json">
+{"description":"Smart Proxy service for Openshift insights results","url":"https://redhatinsights.github.io/insights-results-smart-proxy/component/insights-results-db-writer.html","@type":"WebPage","headline":"Insights Results Smart Proxy","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/insights-results-smart-proxy/assets/css/style.css?v=">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://redhatinsights.github.io/insights-results-smart-proxy/">Insights Results Smart Proxy</a></h1>
+      
+
+      <p>[<a href="/insights-results-smart-proxy/overall-architecture.html">Front page</a>] [<a href="/insights-results-smart-proxy/overall-architecture.html">Overall architecture</a>]</p>
+
+<h1 id="component-insights-results-db-writer">Component: <code class="language-plaintext highlighter-rouge">Insights Results DB Writer</code></h1>
+
+<h2 id="type">Type</h2>
+
+<ul>
+  <li>Service</li>
+</ul>
+
+<h2 id="description">Description</h2>
+
+<p>The main task for this service is to listen to configured Kafka topic, consume
+all messages from such topic, and write OCP results (in JSON format) with
+additional information (like organization ID, cluster name, Kafka offset etc.)
+into a SQL database. One report can be consumed and written into the database
+for the same cluster.</p>
+
+<h2 id="interfaces">Interfaces</h2>
+
+<ul>
+  <li>Input:
+    <ul>
+      <li>Messages with rule reports consumed from Kafka topic</li>
+    </ul>
+  </li>
+  <li>Output:
+    <ul>
+      <li>Rule reports stored in multiple tables in different formats</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="grafana-dashboard">Grafana dashboard</h2>
+
+<ul>
+  <li><a href="https://grafana.app-sre.devshift.net/d/C4vK5h2Wk/ccx-insights-results-db-writer?orgId=1&amp;refresh=1m">https://grafana.app-sre.devshift.net/d/C4vK5h2Wk/ccx-insights-results-db-writer?orgId=1&amp;refresh=1m</a></li>
+</ul>
+
+<h2 id="source-code">Source code</h2>
+
+<ul>
+  <li>Repository: <a href="https://github.com/RedHatInsights/insights-results-aggregator">https://github.com/RedHatInsights/insights-results-aggregator</a></li>
+  <li>Written in: Go</li>
+</ul>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/RedHatInsights/insights-results-smart-proxy/edit/gh-pages/component/insights-results-db-writer.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+  </body>
+</html>
