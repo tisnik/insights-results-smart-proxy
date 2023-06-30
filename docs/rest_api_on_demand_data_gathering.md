@@ -22,3 +22,4 @@ REST API endpoints are described as OpenAPI that is available at [https://develo
 
 Please note that in order to access REST API, authorization token needs to be
 provided for most REST API endpoints (OpenAPI schema is the exception).
+
